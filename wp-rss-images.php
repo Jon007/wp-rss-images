@@ -40,6 +40,8 @@ function wp_rss_img_get_options($default = false){
 add_action('admin_menu', 'wp_rss_img_menu');
 add_action("do_feed_rss","wp_rss_img_do_feed",5,1);
 add_action("do_feed_rss2","wp_rss_img_do_feed",5,1); 
+add_action('bbp_feed', 'wp_rss_img_do_feed');
+add_action('bbp_feed_item', 'wp_rss_img_include'); 
 
 function wp_rss_img_do_feed($for_comments){
 	if(!$for_comments) {
@@ -112,7 +114,10 @@ function wp_rss_img_url($size = 'medium') {
 		}
 	
 	}
-	if (isset($img)) return $img[0];
+    if (isset($img)){ return $img[0]; }
+    elseif (function_exists('inkston_catch_image')) {
+        return inkston_catch_image();
+    }
 }
 
 
