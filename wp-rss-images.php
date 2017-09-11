@@ -43,12 +43,35 @@ add_action("do_feed_rss2","wp_rss_img_do_feed",5,1);
 add_action('bbp_feed', 'wp_rss_img_do_feed');
 add_action('bbp_feed_item', 'wp_rss_img_include'); 
 
-function wp_rss_img_do_feed($for_comments){
+//TODO: make it optional to add the image to the content as well (like all the other plugins seem to do..)
+function wp_rss_img_in_content($content) {
+    global $post;
+    if ($post){
+        $image = get_the_post_thumbnail( $post->ID, 'medium', array( 'style' => 'float:left;margin-right:5px;' ) );
+    }
+    if (! $image){
+        $image_url = wp_rss_img_url();
+        $image = '<img src="' . $image_url . 
+                '" style="float:left;margin-right:5px;" />';
+    }
+	return $image . $content;
+}
+add_filter('the_excerpt_rss', 'wp_rss_img_in_content', 50, 1);
+add_filter('the_content_feed', 'wp_rss_img_in_content', 50, 1);
+
+
+function wp_rss_img_do_feed($for_comments=false){
 	if(!$for_comments) {
 		$options = wp_rss_img_get_options();
-		if($options['media']) add_action('rss2_ns', 'wp_rss_img_adding_yahoo_media_tag');
+		if($options['media']){
+            add_action('rss2_ns', 'wp_rss_img_adding_yahoo_media_tag');
+        }
 		if ($options['rss'])  add_action('rss_item', 'wp_rss_img_include');
 		if ($options['rss2'])  add_action('rss2_item', 'wp_rss_img_include');
+        
+    add_filter( 'bbp_get_topic_content', 'wp_rss_img_in_content', 50, 1 );
+		add_filter( 'bbp_get_reply_content', 'wp_rss_img_in_content', 50, 1);
+
 	}
 }
 
