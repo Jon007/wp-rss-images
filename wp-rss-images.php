@@ -41,6 +41,7 @@ add_action('admin_menu', 'wp_rss_img_menu');
 add_action("do_feed_rss","wp_rss_img_do_feed",5,1);
 add_action("do_feed_rss2","wp_rss_img_do_feed",5,1); 
 add_action('bbp_feed', 'wp_rss_img_do_feed');
+add_action('bbp_feed', 'wp_rss_img_adding_yahoo_media_tag');            
 add_action('bbp_feed_item', 'wp_rss_img_include'); 
 
 //TODO: make it optional to add the image to the content as well (like all the other plugins seem to do..)
@@ -79,7 +80,8 @@ function wp_rss_img_include (){
 	$options = wp_rss_img_get_options();
 	$media = $options['media'];
 	$enclosure = $options['enclosure'];
-	$image_size = $options['size'];
+	//$image_size = $options['size'];
+    $image_size = 'large';
 		
 	$image_url = wp_rss_img_url($image_size);
 	
@@ -88,24 +90,26 @@ function wp_rss_img_include (){
 		$uploads = wp_upload_dir();
 		$url = parse_url($image_url);
 		$path = $uploads['basedir'] . preg_replace( '/.*uploads(.*)/', '${1}', $url['path'] );
+		$filesize = 0;
 		
 		if ( file_exists( $path ) )
 		{
 		  $filesize = filesize( $path );
 		  $url = $path;
 		  
-		} else {		
+		} 
+    if ( ! $filesize ) {		
 			$ary_header = get_headers($image_url, 1);					   
 			$filesize = $ary_header['Content-Length'];	
 			$url = $image_url;				
 		}
 		
-		if($enclosure) echo '<enclosure url="' . $image_url . '" length="' . $filesize . '" type="image/jpg" />';				
+		if($enclosure) echo '<enclosure url="' . str_replace ('https', 'http', $image_url) . 
+            '" length="' . $filesize . '" type="image/jpg" />';	//TODO: use right type not assume jpg			
 		if($media){
 				list($width, $height, $type, $attr) = getimagesize($url);
 				echo '<media:content url="'.$image_url.'" width="'.$width.'" height="'.$height.'" medium="image" type="'.image_type_to_mime_type($type).'" />';
 		}
-	
 	}
 	
 }
