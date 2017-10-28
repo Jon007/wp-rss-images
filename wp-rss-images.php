@@ -100,12 +100,26 @@ function wp_rss_img_include (){
 		} 
     if ( ! $filesize ) {		
 			$ary_header = get_headers($image_url, 1);					   
+            if (isset( $ary_header['Content-Length'])){
 			$filesize = $ary_header['Content-Length'];	
+            }
 			$url = $image_url;				
 		}
 		
 		if($enclosure) echo '<enclosure url="' . str_replace ('https', 'http', $image_url) . 
             '" length="' . $filesize . '" type="image/jpg" />';	//TODO: use right type not assume jpg			
+      if($media){
+          list($width, $height, $type, $attr) = getimagesize($url);
+          echo '<media:content url="'.$image_url.'" width="'.$width.'" height="'.$height.'" medium="image" type="'.image_type_to_mime_type($type).'" />';
+      }
+	//add inkston image fallback where no attached image
+	} elseif (function_exists('inkston_catch_image')) {
+        $image_url = inkston_catch_image();
+        $ary_header = get_headers($image_url, 1);					   
+        $filesize = $ary_header['Content-Length'];	
+		if($enclosure) echo '<enclosure url="' . str_replace ('https', 'http', $image_url) . 
+            '" length="' . $filesize .
+            '" type="image/jpg" />';
 		if($media){
 				list($width, $height, $type, $attr) = getimagesize($url);
 				echo '<media:content url="'.$image_url.'" width="'.$width.'" height="'.$height.'" medium="image" type="'.image_type_to_mime_type($type).'" />';
